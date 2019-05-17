@@ -2,6 +2,7 @@ from .rtresult import *
 from .tokens import *
 from .number import *
 from .String import *
+from .List import *
 
 class Interpreter:
 	def visit(self, node, context):
@@ -13,6 +14,18 @@ class Interpreter:
 		raise Exception(f'No visit_{type(node).__name__} method defined')
 
 	###################################
+
+	def visit_ListNode(self, node, context):
+		res = RTResult()
+		elements = []
+
+		for element_node in node.element_nodes:
+			elements.append(res.register(self.visit(element_node, context)))
+			if res.error: return res
+		
+		return res.success(
+			List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
+		)
 
 	def visit_NumberNode(self, node, context):
 		return RTResult().success(
@@ -127,6 +140,7 @@ class Interpreter:
 	
 	def visit_ForNode(self, node, context):
 		res = RTResult()
+		elements = []
 
 		start_value = res.register(self.visit(node.start_value_node, context))
 		if res.error: return res
@@ -151,13 +165,16 @@ class Interpreter:
 			context.symbol_table.set(node.var_name_tok.value, Number(i))
 			i += step_value.value
 
-			res.register(self.visit(node.body_node, context))
+			elements.append(res.register(self.visit(node.body_node, context)))
 			if res.error: return res
 		
-		return res.success(None)
+		return res.success(
+			List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
+		)
 	
 	def visit_WhileNode(self, node, context):
 		res = RTResult()
+		elements = []
 
 		while True:
 			condition = res.register(self.visit(node.condition_node, context))
@@ -165,10 +182,12 @@ class Interpreter:
 			
 			if not condition.is_true(): break
 			
-			res.register(self.visit(node.body_node, context))
+			elements.append(res.register(self.visit(node.body_node, context)))
 			if res.error: return res
 		
-		return res.success(None)
+		return res.success(
+			List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
+		)
 	
 	def visit_FuncDefNode(self, node, context):
 		res = RTResult()

@@ -103,7 +103,7 @@ class Lexer:
 			id_str += self.current_char
 			self.advance()
 		
-		tok_type = TT_KEYWORD if id_str in KEYWORDS else TT_IDENTifIER
+		tok_type = TT_KEYWORD if id_str in KEYWORDS else TT_IDENTIFIER
 		return Token(tok_type, id_str, pos_start, self.pos)
 	
 	def make_string(self):

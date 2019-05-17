@@ -97,7 +97,7 @@ class Parser:
 		res.register_advancement()
 		self.advance()
 
-		if self.current_tok.type != TT_IDENTifIER:
+		if self.current_tok.type != TT_IDENTIFIER:
 			return res.failure(InvalidSyntaxError(
 				self.current_tok.pos_start, self.current_tok.pos_end,
 				"Expected identifier"
@@ -201,7 +201,7 @@ class Parser:
 				if res.error:
 					return res.failure(InvalidSyntaxError(
 						self.current_tok.pos_start, self.current_tok.pos_end,
-						"Expected ')', 'set', 'if', 'for', 'while', 'func', int, float, identifier, '+', '-', '(' or 'not'"
+						"Expected ')', 'set', 'if', 'for', 'while', 'func', int, float, identifier, '+', '-', '(', '[' or 'not'"
 					))
 
 				while self.current_tok.type == TT_COMMA:
@@ -236,7 +236,7 @@ class Parser:
 			self.advance()
 			return res.success(StringNode(tok))
 
-		elif tok.type == TT_IDENTifIER:
+		elif tok.type == TT_IDENTIFIER:
 			res.register_advancement()
 			self.advance()
 			return res.success(VarAccessNode(tok))
@@ -255,6 +255,11 @@ class Parser:
 					self.current_tok.pos_start, self.current_tok.pos_end,
 					"Expected ')'"
 				))
+		
+		elif tok.type == TT_LSQUARE:
+			list_expr = res.register(self.list_expr())
+			if res.error: return res
+			return res.success(list_expr)
 		
 		elif tok.matches(TT_KEYWORD, 'if'):
 			if_expr = res.register(self.if_expr())
@@ -278,7 +283,7 @@ class Parser:
 
 		return res.failure(InvalidSyntaxError(
 			tok.pos_start, tok.pos_end,
-			"Expected int, float, identifier, '+', '-', '(', 'if', 'for', 'while', 'func'"
+			"Expected int, float, identifier, '+', '-', '(', '[', 'if', 'for', 'while', 'func'"
 		))
 	
 	def power(self):
@@ -319,7 +324,7 @@ class Parser:
 		if res.error:
 			return res.failure(InvalidSyntaxError(
 			self.current_tok.pos_start, self.current_tok.pos_end,
-			"Expected int, float, '+', '-' or '(', 'not'"
+			"Expected int, float, identifier, '+', '-' '(', '[' or 'not'"
 		))
 
 		return res.success(node)
@@ -331,7 +336,7 @@ class Parser:
 			res.register_advancement()
 			self.advance()
 
-			if self.current_tok.type != TT_IDENTifIER:
+			if self.current_tok.type != TT_IDENTIFIER:
 				return res.failure(InvalidSyntaxError(
 					self.current_tok.pos_start, self.current_tok.pos_end,
 					'Expected identifier'
@@ -361,11 +366,58 @@ class Parser:
 		if res.error: 
 			return res.failure(InvalidSyntaxError(
 				self.current_tok.pos_start, self.current_tok.pos_end,
-				"Expected 'set', 'not', int, float, identifier, '+', '-' or '('"
+				"Expected 'while', 'for', 'func', 'set', 'not', int, float, identifier, '+', '-', '(' or '['"
 			))
 		
 		return res.success(node)
 	
+	def list_expr(self):
+		res = ParseResult()
+		element_nodes = []
+		pos_start = self.current_tok.pos_start.copy()
+
+		if self.current_tok.type != TT_LSQUARE:
+			return res.failure(InvalidSyntaxError(
+				self.current_tok.pos_start, self.current_tok.pos_end,
+				"Expected '['"
+			))
+		
+		res.register_advancement()
+		self.advance()
+
+		if self.current_tok.type == TT_RSQUARE:
+			res.register_advancement()
+			self.advance()
+		else:
+			element_nodes.append(res.register(self.expr()))
+			if res.error:
+				return res.failure(InvalidSyntaxError(
+					self.current_tok.pos_start, self.current_tok.pos_end,
+					"Expected ']', 'set', 'if', 'for', 'while', 'func', int, float, identifier, '+', '-', '(', '[' or 'not'"
+				))
+
+			while self.current_tok.type == TT_COMMA:
+				res.register_advancement()
+				self.advance()
+
+				element_nodes.append(res.register(self.expr()))
+				if res.error: return res
+
+			if self.current_tok.type != TT_RSQUARE:
+				return res.failure(InvalidSyntaxError(
+					self.current_tok.pos_start, self.current_tok.pos_end,
+					f"Expected ',' or ']'"
+				))
+			
+			res.register_advancement()
+			self.advance()
+		
+		return res.success(ListNode(
+			element_nodes,
+			pos_start,
+			self.current_tok.pos_end.copy()
+		))
+
 	def func_def(self):
 		res = ParseResult()
 
@@ -378,7 +430,7 @@ class Parser:
 		res.register_advancement()
 		self.advance()
 
-		if self.current_tok.type == TT_IDENTifIER:
+		if self.current_tok.type == TT_IDENTIFIER:
 			var_name_tok = self.current_tok
 			res.register_advancement()
 			self.advance()
@@ -399,7 +451,7 @@ class Parser:
 		self.advance()
 		arg_name_toks = []
 
-		if self.current_tok.type == TT_IDENTifIER:
+		if self.current_tok.type == TT_IDENTIFIER:
 			arg_name_toks.append(self.current_tok)
 			res.register_advancement()
 			self.advance()
@@ -408,7 +460,7 @@ class Parser:
 				res.register_advancement()
 				self.advance()
 
-				if self.current_tok.type != TT_IDENTifIER:
+				if self.current_tok.type != TT_IDENTIFIER:
 					return res.failure(InvalidSyntaxError(
 						self.current_tok.pos_start, self.current_tok.pos_end,
 						f"Expected identifier"
