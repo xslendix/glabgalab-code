@@ -2,7 +2,8 @@
 
 debug = True
 
-import basic
+#import basic
+from language import run
 import sys
 import os.path
 import readline
@@ -39,7 +40,8 @@ while True:
         text = input('>>> ')
 
         if text != 'exit':
-            result, error = basic.run('<stdin>', text)
+            #result, error = basic.run('<stdin>', text)
+            result, error = run.run('<stdin>', text)
             if error:
                 print(error.as_string())
             elif result:
