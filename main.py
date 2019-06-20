@@ -45,7 +45,7 @@ while True:
             if error:
                 print(error.as_string())
             elif result:
-                print(result)
+                print(repr(result))
         else: break
     except:
         if debug == False: print('\nIf you try to exit, use the `exit` command god dammit')

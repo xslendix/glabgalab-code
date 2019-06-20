@@ -132,7 +132,7 @@ class BuiltInFunction(BaseFunction):
 	execute_input.arg_names = ['prompt']
 
 	def execute_input_int(self, exec_ctx):
-		i = 1
+		input1 = 1
 
 		while True:
 			input1 = input(str(exec_ctx.symbol_table.get('prompt')) or '')
@@ -145,41 +145,41 @@ class BuiltInFunction(BaseFunction):
 		return RTResult().success(Number(input1))
 	execute_input_int.arg_names = ['prompt']
 
-	def execute_clearsrc(self, exec_ctx):
+	def execute_clear(self, exec_ctx):
 		from os import system, name
 		if name == 'nt': _ = system('cls')
 		else: _ = system('clear')
 		
 		return RTResult().success(Number.null)
-	execute_clearsrc.arg_names = []
+	execute_clear.arg_names = []
 
 	def execute_is_number(self, exec_ctx):
-		is_number = isinstance(exec_ctx.symbol_tabel.get('value'), Number)
+		is_number = isinstance(exec_ctx.symbol_table.get('value'), Number)
 
 		return RTResult().success(Number.true if is_number else Number.false)
-	execute_is_number = ['value']
+	execute_is_number.arg_names = ['value']
 
 	def execute_is_string(self, exec_ctx):
-		is_string = isinstance(exec_ctx.symbol_tabel.get('value'), String)
+		is_string = isinstance(exec_ctx.symbol_table.get('value'), String)
 
 		return RTResult().success(Number.true if is_string else Number.false)
-	execute_is_string = ['value']
+	execute_is_string.arg_names = ['value']
 
 	def execute_is_list(self, exec_ctx):
-		is_list = isinstance(exec_ctx.symbol_tabel.get('value'), List)
+		is_list = isinstance(exec_ctx.symbol_table.get('value'), List)
 
 		return RTResult().success(Number.true if is_list else Number.false)
-	execute_is_list = ['value']
+	execute_is_list.arg_names = ['value']
 
 	def execute_is_function(self, exec_ctx):
-		is_function = isinstance(exec_ctx.symbol_tabel.get('value'), BaseFunction)
+		is_function = isinstance(exec_ctx.symbol_table.get('value'), BaseFunction)
 
 		return RTResult().success(Number.true if is_function else Number.false)
-	execute_is_function = ['value']
+	execute_is_function.arg_names = ['value']
 
 	def execute_append(self, exec_ctx):
-		list_ = exec_ctx.symbol_tabel.get('list')
-		value = exec_ctx.symbol_tabel.get('value')
+		list_ = exec_ctx.symbol_table.get('list')
+		value = exec_ctx.symbol_table.get('value')
 
 		if not isinstance(list_, List):
 			return RTResult().failure(RTError(
@@ -193,8 +193,8 @@ class BuiltInFunction(BaseFunction):
 	execute_append.arg_names = ['list', 'value']
 
 	def execute_pop(self, exec_ctx):
-		list_ = exec_ctx.symbol_tabel.get('list')
-		index = exec_ctx.symbol_tabel.get('index')
+		list_ = exec_ctx.symbol_table.get('list')
+		index = exec_ctx.symbol_table.get('index')
 
 		if not isinstance(list_, List):
 			return RTResult().failure(RTError(
@@ -222,8 +222,8 @@ class BuiltInFunction(BaseFunction):
 	execute_pop.arg_names = ['list', 'index']
 
 	def execute_extend(self, exec_ctx):
-		listA = exec_ctx.symbol_tabel.get('listA')
-		listB = exec_ctx.symbol_tabel.get('listB')
+		listA = exec_ctx.symbol_table.get('listA')
+		listB = exec_ctx.symbol_table.get('listB')
 
 		if not isinstance(listA, List):
 			return RTResult().failure(RTError(
@@ -239,15 +239,44 @@ class BuiltInFunction(BaseFunction):
 				exec_ctx
 			))
 
-			listA.elements.extend(listB.elements)
+		
+		listA.elements.extend(listB.elements)
 		return RTResult().success(Number.null)
 	execute_extend.arg_names = ["listA", 'listB']
+
+	def execute_sleep(self, exec_ctx):
+		amount = exec_ctx.symbol_table.get('amount')
+		
+		if not isinstance(amount, Number):
+			return RTResult().failure(RTError(
+				self.pos_start, self.pos_end,
+				'First argument must be a number',
+				exec_ctx
+			))
+
+		__import__('time').sleep(amount.value)
+
+		return RTResult().success(Number.null)
+	execute_sleep.arg_names = ['amount']
+
+	def execute_clearlist(self, exec_ctx):
+		list1 = exec_ctx.symbol_table.get('list')
+		if not isinstance(list1, List):
+			return RTResult().failure(RTError(
+				self.pos_start, self.pos_end,
+				'First argument must be a list',
+				exec_ctx
+			))
+		
+		list1.elements.clear()
+		return RTResult().success(Number.null)
+	execute_clearlist.arg_names = ['list']
 
 BuiltInFunction.print = BuiltInFunction('print')
 BuiltInFunction.print_ret = BuiltInFunction('print_ret')
 BuiltInFunction.input = BuiltInFunction('input')
 BuiltInFunction.input_int = BuiltInFunction('input_int')
-BuiltInFunction.clearscr = BuiltInFunction('clearscr')
+BuiltInFunction.clear = BuiltInFunction('clear')
 BuiltInFunction.is_number = BuiltInFunction('is_number')
 BuiltInFunction.is_string = BuiltInFunction('is_string')
 BuiltInFunction.is_list = BuiltInFunction('is_list')
@@ -255,5 +284,7 @@ BuiltInFunction.is_function = BuiltInFunction('is_function')
 BuiltInFunction.append = BuiltInFunction('append')
 BuiltInFunction.pop = BuiltInFunction('pop')
 BuiltInFunction.extend = BuiltInFunction('extend')
+BuiltInFunction.clearlist = BuiltInFunction('clearlist')
+BuiltInFunction.sleep = BuiltInFunction('sleep')
 
 from .interpreter import Interpreter
