@@ -1,6 +1,7 @@
 dist
 build
 __pycache__
+language/__pycache__
 *.glab
 *.spec
 *.code-workspace
