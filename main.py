@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-debug = False
+debug = True
 
 #import basic
 from language import run

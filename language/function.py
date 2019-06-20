@@ -143,7 +143,7 @@ class BuiltInFunction(BaseFunction):
 				pass
 
 		return RTResult().success(Number(input1))
-	execute_input.arg_names = ['prompt']
+	execute_input_int.arg_names = ['prompt']
 
 	def execute_clearsrc(self, exec_ctx):
 		from os import system, name
@@ -247,7 +247,7 @@ BuiltInFunction.print = BuiltInFunction('print')
 BuiltInFunction.print_ret = BuiltInFunction('print_ret')
 BuiltInFunction.input = BuiltInFunction('input')
 BuiltInFunction.input_int = BuiltInFunction('input_int')
-BuiltInFunction.clear = BuiltInFunction('clear')
+BuiltInFunction.clearscr = BuiltInFunction('clearscr')
 BuiltInFunction.is_number = BuiltInFunction('is_number')
 BuiltInFunction.is_string = BuiltInFunction('is_string')
 BuiltInFunction.is_list = BuiltInFunction('is_list')
