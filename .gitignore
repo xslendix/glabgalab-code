@@ -1,2 +1,9 @@
+dist
+build
+__pycache__
+*.glab
+*.spec
+*.code-workspace
+*.vscode
 settings.json
 tags
