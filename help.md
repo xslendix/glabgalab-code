@@ -16,6 +16,22 @@
     * [Value type functions](#Value-type-functions)
     * [Type functions](#Type-functions)
 
+## Basic syntax
+Multiple statements can be written inline like so: `1+2;Func();etc()`
+They can also be separated by a new line:
+```
+1+2
+Func()
+etc()
+```
+Or combined:
+```
+1+2;Func()
+Etc();
+```
+
+Multiline statements don't work directly in the interpreter. you neeed to write them in a file. They only work if they are separated by a semicolon: `func a() => Print("sample"); Print(" text\n");`
+
 ## Variables
 set var name = \<expression\>
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -30,20 +46,44 @@ True, False = 1, 0
 and, or, >, <, ==, !=
 
 ### Basic if-else syntax
-if **expression** then **do stuff** elif **expression** then **do other stuff** else **do even more stuff**
+```
+if **expression** then
+    **do stuff**
+elif **expression** then 
+    **do other stuff** 
+else
+    **do even more stuff**
+end
+```
+Inline: if **expression** then **do stuff** elif **expression** then **do other stuff** else **do even more stuff** end
+
+It can also be directly assigned to variables: set **var name** = if **condition** then **return value** else **return value**
 
 ## Loops
 ### While
-while **expression** then **do stuff**
-
+```
+while **expression** then
+    **do stuff**
+end
+```
 ### For
-for **var_name** = **start_value** to **max_value** step **value (is like i = i + value)** then **do stuff**
-
+```
+for **var_name** = **start_value** to **max_value** step **value (is like i = i + value)** then 
+    **do stuff**
+end
+```
 ## Functions
 ### User-defined functions
-func **name**(**arguments\***) => **expression**  - creates a function
+func **name**(**arguments\***) => **expressions**  - creates a function
 They can also be **anonymous**:
 set **foo** = func(**a, b**) => **a+b**
+
+Multi-line:
+```
+func **name**(**arguments**) => (or newline)
+    **expressions**
+end
+```
 
 ### Built-in functions
 #### Program functions
