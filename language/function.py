@@ -145,6 +145,10 @@ class BuiltInFunction(BaseFunction):
 		return RTResult().success(Number(input1))
 	execute_input_int.arg_names = ['prompt']
 
+	def execute_exit(self, exec_ctx):
+		exit(int(str(exec_ctx.symbol_table.get('code'))) or 0)
+	execute_exit.arg_names = ['code']
+
 	def execute_clear(self, exec_ctx):
 		from os import system, name
 		if name == 'nt': _ = system('cls')
@@ -276,6 +280,7 @@ BuiltInFunction.print = BuiltInFunction('print')
 BuiltInFunction.print_ret = BuiltInFunction('print_ret')
 BuiltInFunction.input = BuiltInFunction('input')
 BuiltInFunction.input_int = BuiltInFunction('input_int')
+BuiltInFunction.exit = BuiltInFunction('exit')
 BuiltInFunction.clear = BuiltInFunction('clear')
 BuiltInFunction.is_number = BuiltInFunction('is_number')
 BuiltInFunction.is_string = BuiltInFunction('is_string')

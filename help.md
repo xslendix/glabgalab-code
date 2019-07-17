@@ -10,6 +10,7 @@
 * [Functions](#Functions)
   * [User-defined functions](#User\-defined-functions)
   * [Built-in functions](#Built\-in-functions)
+    * [Program functions](#Program-functions)
     * [Screen functions](#Screen-functions)
     * [Time functions](#Time-functions)
     * [Value type functions](#Value-type-functions)
@@ -45,6 +46,8 @@ They can also be **anonymous**:
 set **foo** = func(**a, b**) => **a+b**
 
 ### Built-in functions
+#### Program functions
+* Exit(**code**) - Exits program with error code.
 #### Screen functions
 * Print(**value**) - Prints stuff
 * PrintRet(**value**) - Returns the printed stuff without printing it to the screen. Makes sense right?

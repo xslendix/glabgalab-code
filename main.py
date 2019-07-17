@@ -39,13 +39,18 @@ while True:
     try:
         text = input('>>> ')
 
+        if text.strip() == '': continue            
+
         if text != 'exit':
             #result, error = basic.run('<stdin>', text)
             result, error = run.run('<stdin>', text)
             if error:
                 print(error.as_string())
             elif result:
-                print(repr(result))
+                if len(result.elements) == 1:
+                    print(repr(result.elements[0]))
+                else:
+                    print(repr(result))
         else: break
     except:
         if debug == False: print('\nIf you try to exit, use the `exit` command god dammit')

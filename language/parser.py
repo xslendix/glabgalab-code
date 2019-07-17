@@ -9,22 +9,109 @@ class Parser:
 		self.tok_idx = -1
 		self.advance()
 
-	def advance(self, ):
+	def advance(self):
 		self.tok_idx += 1
-		if self.tok_idx < len(self.tokens):
-			self.current_tok = self.tokens[self.tok_idx]
+		self.update_current_tok()
 		return self.current_tok
 
+	def reverse(self, amount=1):
+		self.tok_idx -= amount
+		self.update_current_tok()
+		return self.current_tok
+
+	def update_current_tok(self):
+		if self.tok_idx >= 0 and self.tok_idx < len(self.tokens):
+			self.current_tok = self.tokens[self.tok_idx]
+
 	def parse(self):
-		res = self.expr()
+		res = self.statements()
 		if not res.error and self.current_tok.type != TT_EOF:
 			return res.failure(InvalidSyntaxError(
 				self.current_tok.pos_start, self.current_tok.pos_end,
-				"Expected '+', '-', '*', '/', '^', '==', '!=', '<', '>', '<=', '>=', 'and' or 'or'"
+				"Expected '+', '-', '*', '/', '^', '==', '!=', '<', '>', <=', '>=', 'AND' or 'OR'"
 			))
 		return res
 
 	###################################
+	def statements(self):
+		res = ParseResult()
+		statements = []
+		pos_start = self.current_tok.pos_start.copy()
+
+		while self.current_tok.type == TT_NEWLINE:
+			res.register_advancement()
+			self.advance()
+
+		statement = res.register(self.expr())
+		if res.error: return res
+		statements.append(statement)
+
+		more_statements = True
+
+		while True:
+			newline_count = 0
+			while self.current_tok.type == TT_NEWLINE:
+				res.register_advancement()
+				self.advance()
+				newline_count += 1
+			if newline_count == 0:
+				more_statements = False
+
+			if not more_statements: break
+			statement = res.try_register(self.expr())
+			if not statement:
+				self.reverse(res.to_reverse_count)
+				more_statements = False
+				continue
+			statements.append(statement)
+
+		return res.success(ListNode(
+			statements,
+			pos_start,
+			self.current_tok.pos_end.copy()
+		))
+
+	def expr(self):
+		res = ParseResult()
+
+		if self.current_tok.matches(TT_KEYWORD, 'set'):
+			res.register_advancement()
+			self.advance()
+
+			if self.current_tok.type != TT_IDENTIFIER:
+				return res.failure(InvalidSyntaxError(
+					self.current_tok.pos_start, self.current_tok.pos_end,
+					'Expected identifier'
+				))
+
+			var_name = self.current_tok
+			res.register_advancement()
+			self.advance()
+
+			if self.current_tok.type != TT_EQ:
+				return res.failure(InvalidSyntaxError(
+					self.current_tok.pos_start, self.current_tok.pos_end,
+					"Expected '='"
+				))
+
+			res.register_advancement()
+			self.advance()
+
+			expr = res.register(self.expr())
+			if res.error: return res
+			return res.success(VarAssignNode(var_name, expr))
+
+		node = res.register(self.bin_op(self.comp_expr, (
+			(TT_KEYWORD, "and"),
+			(TT_KEYWORD, "or")
+			)))
+		if res.error: 
+			return res.failure(InvalidSyntaxError(
+				self.current_tok.pos_start, self.current_tok.pos_end,
+				"Expected 'while', 'for', 'func', 'set', 'not', int, float, identifier, '+', '-', '(' or '['"
+			))
+		
+		return res.success(node)
 
 	def if_expr(self):
 		res = ParseResult()
@@ -329,48 +416,7 @@ class Parser:
 
 		return res.success(node)
 
-	def expr(self):
-		res = ParseResult()
 
-		if self.current_tok.matches(TT_KEYWORD, 'set'):
-			res.register_advancement()
-			self.advance()
-
-			if self.current_tok.type != TT_IDENTIFIER:
-				return res.failure(InvalidSyntaxError(
-					self.current_tok.pos_start, self.current_tok.pos_end,
-					'Expected identifier'
-				))
-
-			var_name = self.current_tok
-			res.register_advancement()
-			self.advance()
-
-			if self.current_tok.type != TT_EQ:
-				return res.failure(InvalidSyntaxError(
-					self.current_tok.pos_start, self.current_tok.pos_end,
-					"Expected '='"
-				))
-
-			res.register_advancement()
-			self.advance()
-
-			expr = res.register(self.expr())
-			if res.error: return res
-			return res.success(VarAssignNode(var_name, expr))
-
-		node = res.register(self.bin_op(self.comp_expr, (
-			(TT_KEYWORD, "and"),
-			(TT_KEYWORD, "or")
-			)))
-		if res.error: 
-			return res.failure(InvalidSyntaxError(
-				self.current_tok.pos_start, self.current_tok.pos_end,
-				"Expected 'while', 'for', 'func', 'set', 'not', int, float, identifier, '+', '-', '(' or '['"
-			))
-		
-		return res.success(node)
-	
 	def list_expr(self):
 		res = ParseResult()
 		element_nodes = []

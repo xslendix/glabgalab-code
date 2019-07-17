@@ -21,6 +21,7 @@ TT_LTE        = 'LTE'
 TT_GTE        = 'GTE'
 TT_COMMA      = 'COMMA'
 TT_ARROW      = 'ARROW'
+TT_NEWLINE    = 'NEWLINE'
 TT_EOF        = 'EOF'
 
 KEYWORDS = [
@@ -36,7 +37,8 @@ KEYWORDS = [
 	'to',
 	'step',
 	'while',
-	'func'
+	'func',
+	'end'
 ]
 
 class Token:
