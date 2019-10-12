@@ -87,7 +87,7 @@ end
 
 ### Built-in functions
 #### Program functions
-* Exit(**code**) - Exits program with error code.
+* Exit() - Exits program with error code 0.
 #### Screen functions
 * Print(**value**) - Prints stuff
 * PrintRet(**value**) - Returns the printed stuff without printing it to the screen. Makes sense right?

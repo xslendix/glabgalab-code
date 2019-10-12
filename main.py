@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 
-debug = True
+debug = False
 
 #import basic
 from language import run
-import sys
+import sys, traceback
 import os.path
 import readline
 import optparse
@@ -37,21 +37,21 @@ else:
         try:
             text = input('>>> ')
 
-            if text.strip() == '': continue            
+            if text.strip() == '': continue
 
-            if text != 'exit':
-                #result, error = basic.run('<stdin>', text)
-                result, error = run.run('<stdin>', text)
-                if error:
-                    print(error.as_string())
-                elif result:
-                    if len(result.elements) == 1:
-                       print(repr(result.elements[0]))
-                    else:
-                        print(repr(result))
-            else: break
-        except:
-            if debug == False: print('\nIf you try to exit, use the `exit` command god dammit')
+            #result, error = basic.run('<stdin>', text)
+            result, error = run.run('<stdin>', text)
+            if error:
+                print(error.as_string())
+            elif result:
+                if len(result.elements) == 1:
+                    print(repr(result.elements[0]))
+                else:
+                    print(repr(result))
+        except KeyboardInterrupt:
+            if debug == False: print('\nIf you try to exit, use the `Exit` function')
             else:
                 print('')
                 raise
+        except Exception:
+            traceback.print_exc(file=sys.stdout)

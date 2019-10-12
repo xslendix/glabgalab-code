@@ -7,6 +7,8 @@ from .number import *
 from .String import *
 from .List import *
 
+import sys
+
 Number.null = Number(0)
 Number.false = Number(0)
 Number.true = Number(1)
@@ -147,8 +149,8 @@ class BuiltInFunction(BaseFunction):
 	execute_input_int.arg_names = ['prompt']
 
 	def execute_exit(self, exec_ctx):
-		exit(int(str(exec_ctx.symbol_table.get('code'))) or 0)
-	execute_exit.arg_names = ['code']
+		sys.exit(0)
+	execute_exit.arg_names = []
 
 	def execute_clear(self, exec_ctx):
 		from os import system, name
