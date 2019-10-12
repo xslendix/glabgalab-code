@@ -87,6 +87,7 @@ end
 
 ### Built-in functions
 #### Program functions
+* Run(*FileName*) - Runs external file
 * Exit() - Exits program with error code 0.
 #### Screen functions
 * Print(**value**) - Prints stuff
@@ -106,6 +107,7 @@ end
 
 #### Type functions
 ##### List functions
+* Len(**list**) - Gets length of list
 * Append(**list, value**) - Appends a value to a list
 * Pop(**list, index**) - Removes a value from a list at a specified index
 * Extend(**list1, list2**) - Adds 2 lists together

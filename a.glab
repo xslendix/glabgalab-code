@@ -1,3 +1,11 @@
-Print(1+2)
-set a = 5
-Print(a)
+; Epic gamer comment
+
+func oopify(prefix) => prefix + "oop"
+
+Print("Hello world!")
+
+for i = 0 to 5 then
+;    Print(oopify("l"))
+;    Print(oopify("sp"))
+Print(i)
+end

@@ -1,3 +1,4 @@
+from . import run as ron
 from .value import *
 from .symboltable import *
 from .rtresult import *
@@ -57,11 +58,11 @@ class BaseFunction(Value):
 		return res.success(None)
 
 class Function(BaseFunction):
-	def __init__(self, name, body_node, arg_names, should_return_null):
+	def __init__(self, name, body_node, arg_names, should_auto_return):
 		super().__init__(name)
 		self.body_node = body_node
 		self.arg_names = arg_names
-		self.should_return_null = should_return_null
+		self.should_auto_return = should_auto_return
 
 	def execute(self, args):
 		res = RTResult()
@@ -69,14 +70,16 @@ class Function(BaseFunction):
 		exec_ctx = self.generate_new_context()
 
 		res.register(self.check_and_populate_args(self.arg_names, args, exec_ctx))
-		if res.error: return res
+		if res.should_return(): return res
 
 		value = res.register(interpreter.visit(self.body_node, exec_ctx))
-		if res.error: return res
-		return res.success(Number.null if should_return_null else value)
+		if res.should_return() and res.func_return_value == None: return res
+		
+		ret_value = (value if self.should_auto_return else None) or res.func_return_value or Number.null
+		return res.success(ret_value)
 
 	def copy(self):
-		copy = Function(self.name, self.body_node, self.arg_names, self.should_return_null)
+		copy = Function(self.name, self.body_node, self.arg_names, self.should_auto_return)
 		copy.set_context(self.context)
 		copy.set_pos(self.pos_start, self.pos_end)
 		return copy
@@ -118,6 +121,19 @@ class BuiltInFunction(BaseFunction):
 	
 	############# Built-in function definitions ################
 
+	def execute_len(self, exec_ctx):
+		list_ = exec_ctx.symbol_table.get('list')
+		
+		if not isinstance(list_, List):
+			return RTResult().failure(RTError(
+				self.pos_start, self.pos_end,
+				'Argument must be list',
+				exec_ctx
+			))
+
+		return RTResult().success(Number(len(list_.elements)))
+	execute_len.arg_names = ['list']
+
 	def execute_print(self, exec_ctx):
 		print(str(exec_ctx.symbol_table.get('value')), end='')
 
@@ -150,6 +166,7 @@ class BuiltInFunction(BaseFunction):
 
 	def execute_exit(self, exec_ctx):
 		sys.exit(0)
+		return RTResult().success(Number.null)
 	execute_exit.arg_names = []
 
 	def execute_clear(self, exec_ctx):
@@ -279,20 +296,56 @@ class BuiltInFunction(BaseFunction):
 		return RTResult().success(Number.null)
 	execute_clearlist.arg_names = ['list']
 
-BuiltInFunction.print = BuiltInFunction('print')
-BuiltInFunction.print_ret = BuiltInFunction('print_ret')
-BuiltInFunction.input = BuiltInFunction('input')
-BuiltInFunction.input_int = BuiltInFunction('input_int')
-BuiltInFunction.exit = BuiltInFunction('exit')
-BuiltInFunction.clear = BuiltInFunction('clear')
-BuiltInFunction.is_number = BuiltInFunction('is_number')
-BuiltInFunction.is_string = BuiltInFunction('is_string')
-BuiltInFunction.is_list = BuiltInFunction('is_list')
+	def execute_run(self, exec_ctx):
+		fn = exec_ctx.symbol_table.get('fn')
+
+		if not isinstance(fn, String):
+			return RTResult().failure(RTError(
+			self.pos_start, self.pos_end,
+			'Argument must be string',
+			exec_ctx
+		))
+		
+		fn = fn.value
+		
+		try:
+			with open(fn, 'r') as f:
+				script = f.read()
+		except Exception as e:
+			return RTResult().failure(RTError(
+				self.pos_start, self.pos_end,
+				f'Failed to load script "{fn}"\n' + str(e),
+				exec_ctx
+			))
+		_, error = ron.run(fn, script)
+		
+		if error:
+			return RTResult().failure(RTError(
+				self.pos_start, self.pos_end,
+				f'Failed to finish executing script "{fn}"',
+				exec_ctx
+			))
+		
+		return RTResult().success(Number.null)
+
+	execute_run.arg_names = ['fn']
+
+BuiltInFunction.len         = BuiltInFunction('len')
+BuiltInFunction.print       = BuiltInFunction('print')
+BuiltInFunction.print_ret   = BuiltInFunction('print_ret')
+BuiltInFunction.input       = BuiltInFunction('input')
+BuiltInFunction.input_int   = BuiltInFunction('input_int')
+BuiltInFunction.exit        = BuiltInFunction('exit')
+BuiltInFunction.clear       = BuiltInFunction('clear')
+BuiltInFunction.is_number   = BuiltInFunction('is_number')
+BuiltInFunction.is_string   = BuiltInFunction('is_string')
+BuiltInFunction.is_list     = BuiltInFunction('is_list')
 BuiltInFunction.is_function = BuiltInFunction('is_function')
-BuiltInFunction.append = BuiltInFunction('append')
-BuiltInFunction.pop = BuiltInFunction('pop')
-BuiltInFunction.extend = BuiltInFunction('extend')
-BuiltInFunction.clearlist = BuiltInFunction('clearlist')
-BuiltInFunction.sleep = BuiltInFunction('sleep')
+BuiltInFunction.append      = BuiltInFunction('append')
+BuiltInFunction.pop         = BuiltInFunction('pop')
+BuiltInFunction.extend      = BuiltInFunction('extend')
+BuiltInFunction.clearlist   = BuiltInFunction('clearlist')
+BuiltInFunction.sleep       = BuiltInFunction('sleep')
+BuiltInFunction.run         = BuiltInFunction('run')
 
 from .interpreter import Interpreter
